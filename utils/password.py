@@ -14,6 +14,3 @@ def verify_password(password, hashed_password):
         return ph.verify(hashed_password, password)
     except VerifyMismatchError:
         return False
-
-
-

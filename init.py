@@ -7,7 +7,6 @@ from utils.db_session import get_session
 
 session = get_session()
 
-# Dictionnaire des permissions pour chaque groupe
 groups_permissions = {
     "SuperUser": ["view_clients", "view_contracts", "view_events", "view_users",
                   "add_user", "change_user", "delete_user",
@@ -26,21 +25,17 @@ groups_permissions = {
                    "change_event", "filter_events"]
 }
 
-# Récupération de tous les noms de permissions (pour éviter les doublons)
 all_permissions_names = set()
 for permissions in groups_permissions.values():
     all_permissions_names.update(permissions)
 
-# Ajouter les permissions dans la base de données si elles n'existent pas déjà
 for permission_name in all_permissions_names:
     if not session.query(Permission).filter_by(name=permission_name).first():
         permission = Permission(name=permission_name)
         session.add(permission)
 
-# Valider les ajouts de permissions
 session.commit()
 
-# Ajout des groupes et attribution des permissions
 for group_name, permissions in groups_permissions.items():
     group = session.query(CustomGroup).filter_by(name=group_name).first()
     if not group:
@@ -53,13 +48,10 @@ for group_name, permissions in groups_permissions.items():
             group_permission = CustomGroupPermission(custom_group=group, permission=permission)
             session.add(group_permission)
 
-# Valider les ajouts des groupes et permissions
 session.commit()
 
-# Message de confirmation
 click.secho(message="Initialisation de la base de données complète ! \n", fg="green")
 
-# Création du superuser
 click.secho(message="Création du super-utilisateur, veuillez renseigner les champs suivants :", fg="cyan", bold=True)
 
 superuser_group = session.query(CustomGroup).filter_by(name="SuperUser").first()

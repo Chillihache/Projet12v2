@@ -8,7 +8,6 @@ from utils.password import set_password
 
 @click.command()
 def createuser():
-    # Authentifier l'utilisateur
     user = authenticate_user()
     if not user:
         click.secho("Authentification échouée.", fg="red")
@@ -16,13 +15,11 @@ def createuser():
 
     session = get_session()
 
-    # Vérifier si l'utilisateur a les permissions nécessaires
     if "add_user" not in user.get_permissions(session):
         click.secho("Vous n'avez pas la permission de créer un utilisateur.", fg="red")
         return
 
     try:
-        # Récupérer les groupes existants
         groups = session.query(CustomGroup).all()
         if not groups:
             click.secho(
@@ -55,7 +52,6 @@ def createuser():
         first_name = click.prompt("Prénom")
         last_name = click.prompt("Nom")
 
-        # Afficher les groupes disponibles pour sélection
         click.echo("Veuillez choisir un département :")
         for i, group in enumerate(groups, start=1):
             click.echo(f"{i}. {group.name}")
