@@ -2,8 +2,10 @@ from sqlalchemy import exists
 import click
 from models import Base, Permission, CustomGroup, CustomGroupPermission, User, Client, Event, Contract
 from utils.password import set_password
-from utils.db_session import get_session
+from utils.db_session import get_session, engine
 
+
+Base.metadata.create_all(engine)
 
 session = get_session()
 

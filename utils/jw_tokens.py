@@ -1,15 +1,17 @@
 import json
 import click
+import os
 import jwt
 import datetime
 from decouple import config
 from sqlalchemy import func
 from models import User
 from utils.db_session import get_session
+from sqlalchemy.orm.exc import NoResultFound
 
 
 SECRET_KEY = config('TOKEN_SECRET_KEY')
-TOKENS_FILE = "jwt_tokens.json"
+TOKENS_FILE = "jw_tokens.json"
 session = get_session()
 
 
@@ -74,7 +76,7 @@ def refresh_access_token(refresh_token):
 
         save_tokens(new_access_token, new_refresh_token)
 
-        click.secho("Le jeton d'accès a été rafraîchi !", fg="green")
+        click.secho("Le jeton d'accès a été rafraîchi !", fg="yellow")
         return new_access_token
 
     except jwt.ExpiredSignatureError:
@@ -85,7 +87,7 @@ def refresh_access_token(refresh_token):
         click.secho("Le jeton de rafraichissement est invalide. Veuillez vous reconnecter.", fg="red")
         return None
 
-    except User.DoesNotExist:
+    except User.NoResultFound:
         click.secho("L'utilisateur associé au jeton de rafraichissement n'existe pas. Veuillez vous reconnecter.", fg="red")
         return None
 
@@ -104,22 +106,31 @@ def authenticate_user():
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=["HS256"])
         email = payload.get("email")
 
-        user = session.query(User).filter_by(email=email).first()
+        with get_session() as session:
+            user = session.query(User).filter_by(email=email).first()
+
         return user
 
     except jwt.ExpiredSignatureError:
         if refresh_access_token(refresh_token):
             return authenticate_user()
         else:
-            click.secho("Le jeton a expiré et n'a pas pu être rafraîchi. Veuillez vous reconnecter.", fg="red")
             return None
 
     except jwt.InvalidTokenError:
         click.secho("Le jeton est invalide. Veuillez vous reconnecter.", fg="red")
         return None
 
-    except User.DoesNotExist:
+    except User.NoResultFound:
         click.secho("L'utilisateur associé au token n'existe pas. Veuillez vous reconnecter.", fg="red")
         return None
+
+
+def delete_tokens_file():
+    if os.path.exists(TOKENS_FILE):
+        os.remove(TOKENS_FILE)
+        return True
+    else:
+        return False
 
 

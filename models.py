@@ -69,7 +69,7 @@ class User(Base):
         return [permission.name for permission in permissions]
 
     def __repr__(self):
-        return f"<User(id={self.id}, email={self.email}, first_name={self.first_name}, last_name={self.last_name})>"
+        return f"{self.first_name} {self.last_name}, {self.email}, {self.employee_number} "
 
 
 class Client(Base):
@@ -89,7 +89,7 @@ class Client(Base):
     sales_contact = relationship('User', back_populates='clients')
 
     def __repr__(self):
-        return f"<Client(id={self.id}, email={self.email}, company_name={self.company_name})>"
+        return f"{self.first_name} {self.last_name}, {self.company_name}"
 
 
 class Contract(Base):
@@ -108,7 +108,7 @@ class Contract(Base):
     client = relationship('Client', back_populates='contracts')
 
     def __repr__(self):
-        return f"<Contract(id={self.id}, contract_number={self.contract_number}, total_amount={self.total_amount})>"
+        return f"{self.contract_number}"
 
 
 class Event(Base):
@@ -129,7 +129,7 @@ class Event(Base):
     support_contact = relationship('User', back_populates='events')
 
     def __repr__(self):
-        return f"<Event(id={self.id}, name={self.name}, date_start={self.date_start})>"
+        return f"{self.name}, {self.date_start})>"
 
 
 

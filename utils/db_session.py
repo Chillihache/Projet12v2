@@ -14,8 +14,6 @@ DB_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}
 engine = create_engine(DB_URL)
 
 Session = sessionmaker(bind=engine)
-session = Session()
-
 
 def get_session():
-    return session
+    return Session()
