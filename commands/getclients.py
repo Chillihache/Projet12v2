@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 from rich.console import Console
 from utils.jw_tokens import authenticate_user
 from utils.db_session import get_session
@@ -8,19 +9,24 @@ from models import Client
 
 @click.command()
 def getclients():
-    user = authenticate_user()
-    if not user:
-        click.secho("Authentification échouée.", fg="red")
-        return
-
-    with get_session() as session:
-        user = session.merge(user)
-        if "view_clients" not in user.get_permissions(session):
-            click.secho("Vous n'avez pas la permission de voir les client.", fg="red")
+    try:
+        user = authenticate_user()
+        if not user:
+            click.secho("Authentification échouée.", fg="red")
             return
 
-        clients = session.query(Client).all()
-        console = Console()
-        table = create_clients_table(clients)
+        with get_session() as session:
+            user = session.merge(user)
+            if "view_clients" not in user.get_permissions(session):
+                click.secho("Vous n'avez pas la permission de voir les client.", fg="red")
+                return
 
-        console.print(table)
+            clients = session.query(Client).all()
+            console = Console()
+            table = create_clients_table(clients)
+
+            console.print(table)
+
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()

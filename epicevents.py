@@ -1,5 +1,19 @@
-from utils.db_session import get_session
 import click
+import sentry_sdk
+import utils.sentry_events
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from decouple import config
+
+
+SENTRY_DSN = config('DNS_SENTRY')
+
+
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    integrations=[SqlalchemyIntegration()],
+    traces_sample_rate=1.0,
+)
+
 from commands.login import login
 from commands.logout import logout
 from commands.createuser import createuser
@@ -41,4 +55,8 @@ cli.add_command(filtercontracts)
 cli.add_command(filterevents)
 
 if __name__ == "__main__":
-    cli()
+    try:
+        cli()
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        click.secho(f"❌ Erreur capturée par Sentry : {e}", fg="red")

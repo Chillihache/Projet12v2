@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 from utils.db_session import get_session
 from utils.jw_tokens import authenticate_user
 from models import Client
@@ -6,39 +7,44 @@ from models import Client
 
 @click.command()
 def createclient():
-    user = authenticate_user()
+    try:
+        user = authenticate_user()
 
-    if not user:
-        click.secho("Authentification échouée.", fg="red")
-        return
-
-    with get_session() as session:
-        user = session.merge(user)
-        if "add_client" not in user.get_permissions(session):
-            click.secho("Vous n'avez pas la permission de créer un client.", fg="red")
+        if not user:
+            click.secho("Authentification échouée.", fg="red")
             return
 
-        click.echo("Veuillez renseigner les champs suivants pour la création du client :")
+        with get_session() as session:
+            user = session.merge(user)
+            if "add_client" not in user.get_permissions(session):
+                click.secho("Vous n'avez pas la permission de créer un client.", fg="red")
+                return
 
-        first_name = click.prompt("Prénom")
-        last_name = click.prompt("Nom")
+            click.echo("Veuillez renseigner les champs suivants pour la création du client :")
 
-        email = None
-        while not email:
-            email = click.prompt("Email")
-            if session.query(Client).filter_by(email=email).first():
-                click.secho("Cette email est déjà utilisé par un client.", fg="red")
-                email = None
+            first_name = click.prompt("Prénom")
+            last_name = click.prompt("Nom")
 
-        company_name = click.prompt("Nom de l'entreprise")
+            email = None
+            while not email:
+                email = click.prompt("Email")
+                if session.query(Client).filter_by(email=email).first():
+                    click.secho("Cette email est déjà utilisé par un client.", fg="red")
+                    email = None
 
-        new_client = Client(first_name=first_name,
-                            last_name=last_name,
-                            email=email,
-                            company_name=company_name,
-                            sales_contact=user
-                            )
+            company_name = click.prompt("Nom de l'entreprise")
 
-        session.add(new_client)
-        session.commit()
-        click.secho("Le client a été créé avec succès !", fg="green")
+            new_client = Client(first_name=first_name,
+                                last_name=last_name,
+                                email=email,
+                                company_name=company_name,
+                                sales_contact=user
+                                )
+
+            session.add(new_client)
+            session.commit()
+            click.secho("Le client a été créé avec succès !", fg="green")
+
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()

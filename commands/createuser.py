@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 from utils.jw_tokens import authenticate_user
 from utils.db_session import get_session
 from models import User, CustomGroup
@@ -7,19 +8,20 @@ from utils.password import set_password
 
 @click.command()
 def createuser():
-    user = authenticate_user()
-    if not user:
-        click.secho("Authentification échouée.", fg="red")
-        return
-
-    with get_session() as session:
-        user = session.merge(user)
-
-        if "add_user" not in user.get_permissions(session):
-            click.secho("Vous n'avez pas la permission de créer un utilisateur.", fg="red")
+    try:
+        user = authenticate_user()
+        if not user:
+            click.secho("Authentification échouée.", fg="red")
             return
 
-        try:
+        with get_session() as session:
+            user = session.merge(user)
+
+            if "add_user" not in user.get_permissions(session):
+                click.secho("Vous n'avez pas la permission de créer un utilisateur.", fg="red")
+                return
+
+
             groups = session.query(CustomGroup).all()
             if not groups:
                 click.secho(
@@ -86,8 +88,8 @@ def createuser():
                 fg="green",
             )
 
-        except Exception as e:
-            session.rollback()
-            click.secho(f"Erreur lors de la création de l'utilisateur : {e}", fg="red")
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
 
 
