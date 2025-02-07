@@ -28,7 +28,7 @@ def login():
 
                 save_tokens(access_token, refresh_token)
 
-                click.secho("Connexion réussi", fg="green")
+                click.secho("Connexion réussie", fg="green")
 
             else :
                 click.secho("Mot de passe incorrect.", fg="red")

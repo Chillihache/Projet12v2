@@ -28,6 +28,11 @@ def updateuser(email):
                 click.secho("Cet email ne correspond à aucun utilisateur.", fg="red")
                 return
 
+            if user_to_update.custom_group_id == 1:
+                if user_to_update != user:
+                    click.secho("Vous ne pouvez pas modifier un compte administrateur.", fg="red")
+                    return
+
 
             groups = session.query(CustomGroup).all()
             if not groups:
@@ -52,10 +57,13 @@ def updateuser(email):
             new_first_name = click.prompt("Nouveau prénom", default=user_to_update.first_name)
             new_last_name = click.prompt("Nouveau nom", default=user_to_update.last_name)
 
-            new_password = click.prompt("Nouveau mot de passe (laisser vide pour ne pas changer)",
-                                        default="",
-                                        hide_input=True,
-                                        confirmation_prompt="Veuillez répéter le mot de passe pour confirmation")
+            if user == user_to_update:
+                new_password = click.prompt("Nouveau mot de passe (laisser vide pour ne pas changer)",
+                                            default="",
+                                            hide_input=True,
+                                            confirmation_prompt="Veuillez répéter le mot de passe pour confirmation")
+            else:
+                new_password = None
 
             new_employee_number = None
             while not new_employee_number:
@@ -97,7 +105,8 @@ def updateuser(email):
 
             session.commit()
 
-            click.secho(f"Les informations de l'utilisateur {user_to_update.first_name} {user_to_update.last_name} ont été mises à jour avec succès.", fg="green")
+            click.secho(f"Les informations de l'utilisateur {user_to_update.first_name} {user_to_update.last_name} "
+                        f"ont été mises à jour avec succès.", fg="green")
 
     except Exception as e:
         sentry_sdk.capture_exception(e)

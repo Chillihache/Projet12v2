@@ -27,6 +27,11 @@ def deleteuser(email):
                 click.secho("Cet email ne correspond a aucun utilisateur.", fg="red")
                 return
 
+            if user_to_delete.custom_group_id == 1:
+                if user != user_to_delete:
+                    click.secho("Vous ne pouvez pas supprimer un compte administrateur.", fg="red")
+                    return
+
             if not click.confirm(f"Êtes-vous sûr de vouloir supprimer l'utilisateur {user_to_delete.first_name} {user_to_delete.last_name} ?"):
                 click.secho("Suppression annulée.", fg="yellow")
                 return

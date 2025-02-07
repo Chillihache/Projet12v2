@@ -32,14 +32,16 @@ def generate_tokens(email, password):
 
     access_payload = {
         "email": email,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=1),
+        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=1)
+,
     }
 
     access_token = jwt.encode(access_payload, SECRET_KEY, algorithm="HS256")
 
     refresh_payload = {
         "email": email,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=7),
+        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
+,
     }
     refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm="HS256")
 
